@@ -131,34 +131,42 @@ class Endomondo {
 	}
 	function getActivities($limit=15) {
 		$url=$this->config['endomondo_host']."/mobile/api/feed";
-		$params['authToken']=$this->getAuthToken();
-		$params['maxResults']=$limit;
-		$params['language']='pl';
-		$params['show']="tagged_users,pictures";
+		$params = array(
+			'authToken' =>	$this->getAuthToken(),
+			'maxResults' =>	$limit,
+			'language' =>		'pl',
+			'show' =>		'tagged_users,pictures'
+		);
 		return json_decode($this->makeRequest($url,"GET",$params))->data;
 	}
 	function getFriendsSummary() {
 		$url=$this->config['endomondo_host']."/mobile/friends";
-		$params['authToken']=$this->getAuthToken();
-		$params['language']='pl';
+		$params = array(
+			'authToken' =>	$this->getAuthToken(),
+			'language' =>		'pl'
+		);
 	}
-	function getWorkoutList($limit=20) {
+	function getMyWorkouts($limit=20) {
 		$url=$this->config['endomondo_host']."/mobile/api/workouts";
-		$params['authToken']=$this->getAuthToken();
-		$params['fields']="device,simple,basic,lcp_count";
-		$params['maxResults']=$limit;
-		$params['gzip']='true';
-		$params['compression']='gzip';
+		$params = array(
+			'authToken' =>	$this->getAuthToken(),
+			'fields' =>		'device,simple,basic,lcp_count',
+			'maxResults' =>	$limit,
+			'gzip' =>		'true',
+			'compression' =>	'gzip'
+		);
 		return json_decode($this->makeRequest($url,"GET",$params))->data;
 	}
 	function getWorkoutDetails($id) {
 		$url=$this->config['endomondo_host']."/mobile/api/workout/get";
-		$params['authToken']=$this->getAuthToken();
+		$params = array(
+			'authToken' =>	$this->getAuthToken(),
+			'fields' =>		'device,simple,basic,motivation,interval,points,lcp_count,tagged_users,pictures',
+			'workoutId' =>		$id,
+			'gzip' =>		'true',
+			'compression' =>	'gzip'
+		);
 		//$params['fields']="device,simple,basic,motivation,interval,hr_zones,weather,polyline_encoded_small,points,lcp_count,tagged_users,pictures,feed";
-		$params['fields']="device,simple,basic,motivation,interval,points,lcp_count,tagged_users,pictures";
-		$params['workoutId']=$id;
-		$params['gzip']='true';
-		$params['compression']='gzip';
 		return json_decode($this->makeRequest($url,"GET",$params));
 	}
 }
