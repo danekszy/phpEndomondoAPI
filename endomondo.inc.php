@@ -68,6 +68,26 @@ class Endomondo {
 		$this->ua_string="Dalvik/1.6.0 (Linux; U; ". $config['os'] ." ". $config['os_version'] ."; ". $config['model'] ." Build/GRI40)";
 		$this->getAuthToken();
 	}
+	private function defeatPagination($url, $params, $limit, $before=null)
+	{
+		if($limit<1) return (object) array('data' => array()); //Nothin do do here
+		if($before['time']) $params['before'] = $before['time']; //See if were going in retrospect
+		if($before['id']) $params['beforeId'] = $before['id']; 
+		$response = json_decode($this->makeRequest($url,"GET",$params));
+		$current_count=count($response->data);
+		if(is_array($before) && isset($response->more) && !$response->data[0]) return (object) array('data' => array()); //No more results (reached the end)
+		elseif($current_count<$limit) { //Limit is not sustained. We need more entries.
+			if(isset($response->data[0]->start_time)) {
+				$before = array('time' => end($response->data)->start_time);
+			} else {
+				$last=end($response->data);
+				$before = array('time' => $last->order_time, 'id' => $last->id);
+			}
+			$more_results = $this->defeatPagination($url, $params, $limit-$current_count, $before);
+			return (object) array('data' => array_merge($response->data, $more_results->data));
+		}
+		return $response; //If we got what we needed, just return fetched data
+	}
 	private function makeRequest($url, $method=null, $params=null) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -104,11 +124,11 @@ class Endomondo {
 	}
 	private function requestAuthToken() {
 		$params = array(
-			'email' =>		$this->config['email'],
+			'email' =>			$this->config['email'],
 			'password' =>		$this->config['password'],
 			'country' =>		$this->config['country'],
 			'deviceId' =>		$this->config['device_id'],
-			'os' =>			$this->config['os'],
+			'os' =>				$this->config['os'],
 			'appVersion' =>	$this->config['app_version'],
 			'appVariant' =>	$this->config['app_variant'],
 			'osVersion' =>		$this->config['os_version'],
@@ -129,7 +149,7 @@ class Endomondo {
 		if($this->config['auth_token']!=null) return $this->config['auth_token'];
 		return $this->config['auth_token'] = $this->requestAuthToken();
 	}
-	function getActivities($limit=15) {
+	function getActivities($user=null, $limit=15) {
 		$url=$this->config['endomondo_host']."/mobile/api/feed";
 		$params = array(
 			'authToken' =>	$this->getAuthToken(),
@@ -137,7 +157,8 @@ class Endomondo {
 			'language' =>		'pl',
 			'show' =>		'tagged_users,pictures'
 		);
-		return json_decode($this->makeRequest($url,"GET",$params))->data;
+		if($user!=null) $params['userId'] = $user;
+		return $this->defeatPagination($url, $params, $limit);
 	}
 	function getFriendsSummary() {
 		$url=$this->config['endomondo_host']."/mobile/friends";
@@ -146,24 +167,25 @@ class Endomondo {
 			'language' =>		'pl'
 		);
 	}
-	function getMyWorkouts($limit=20) {
+	function getWorkoutList($user=null, $limit=20) {
 		$url=$this->config['endomondo_host']."/mobile/api/workouts";
 		$params = array(
 			'authToken' =>	$this->getAuthToken(),
-			'fields' =>		'device,simple,basic,lcp_count',
+			'fields' =>			'device,simple,basic,lcp_count',
 			'maxResults' =>	$limit,
-			'gzip' =>		'true',
+			'gzip' =>			'true',
 			'compression' =>	'gzip'
 		);
-		return json_decode($this->makeRequest($url,"GET",$params))->data;
+		if($user!=null) $params['userId'] = $user;
+		return $this->defeatPagination($url, $params, $limit);
 	}
 	function getWorkoutDetails($id) {
 		$url=$this->config['endomondo_host']."/mobile/api/workout/get";
 		$params = array(
 			'authToken' =>	$this->getAuthToken(),
-			'fields' =>		'device,simple,basic,motivation,interval,points,lcp_count,tagged_users,pictures',
+			'fields' =>			'device,simple,basic,motivation,interval,points,lcp_count,tagged_users,pictures',
 			'workoutId' =>		$id,
-			'gzip' =>		'true',
+			'gzip' =>			'true',
 			'compression' =>	'gzip'
 		);
 		//$params['fields']="device,simple,basic,motivation,interval,hr_zones,weather,polyline_encoded_small,points,lcp_count,tagged_users,pictures,feed";
