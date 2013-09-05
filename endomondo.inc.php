@@ -159,12 +159,36 @@ class Endomondo {
 		if($user!=null) $params['userId'] = $user;
 		return $this->defeatPagination($url, $params, $limit);
 	}
-	function getFriendsSummary() { //TODO: Fetches a list of friends with timestamps of their latest activity. Useful for checking if cached data is up-to-date.
+	function getFriendsSummary() { //TODO: Fetches a list of friends with details & timestamps of their latest activity. Useful for checking if cached data is up-to-date.
 		$url=$this->config['endomondo_host']."/mobile/friends";
 		$params = array(
 			'authToken' =>	$this->getAuthToken(),
-			'language' =>		'pl'
+			'language' =>		'en'
 		);
+		//id;name;profilepic;lastworkout;sport;online
+		$response = $this->makeRequest($url,"GET",$params);
+		$lines = explode("\n", $response);
+		if($lines[0]!=="OK") {
+			echo "Something went wrong.";
+			return false;
+		}
+		$friends = array();
+		for ($i=1; $i <count($lines)-1; $i++) { 
+			$data = explode(';', $lines[$i]);
+			$friend= array (
+				'id' =>						$data[0],
+				'name' =>					$data[1],
+				'lastWorkoutDate' =>		$data[3],
+				'favSportWTF' =>			$data[4],
+				'onlineWTF' =>			$data[5]
+			);
+			if($data[2]) {
+				$friend['userimg_thumbnail'] = "http://image.endomondo.com/resources/gfx/picture/".$data[2]."/thumbnail.jpg";
+				$friend['userimg_big'] = "http://image.endomondo.com/resources/gfx/picture/".$data[2]."/big.jpg";
+			}
+			$friends[] = (object) $friend;
+		}
+		return $friends;
 	}
 	function getWorkoutList($user=null, $limit=20) { //Fetches a list of workouts, either your own or specified user's
 		$url=$this->config['endomondo_host']."/mobile/api/workouts";
