@@ -9,3 +9,7 @@ Based on [isoteemu](https://github.com/isoteemu)'s [sports-tracker-liberator](ht
 TODO:  
 * Good README  
 * Lots of fixes
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/danekszy/phpendomondoapi/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
