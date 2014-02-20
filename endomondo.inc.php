@@ -123,15 +123,15 @@ class Endomondo {
 	}
 	private function requestAuthToken() { //Grabs authentication token after signing in with provided credentials
 		$params = array(
-			'email' =>			$this->config['email'],
-			'password' =>		$this->config['password'],
-			'country' =>		$this->config['country'],
-			'deviceId' =>		$this->config['device_id'],
+			'email' =>	$this->config['email'],
+			'password' =>	$this->config['password'],
+			'country' =>	$this->config['country'],
+			'deviceId' =>	$this->config['device_id'],
 			'os' =>				$this->config['os'],
 			'appVersion' =>	$this->config['app_version'],
 			'appVariant' =>	$this->config['app_variant'],
-			'osVersion' =>		$this->config['os_version'],
-			'model' =>		$this->config['model']
+			'osVersion' =>	$this->config['os_version'],
+			'model' =>	$this->config['model']
 		);
 		$url=$this->config['endomondo_host']."/mobile/auth?v=2.4&action=PAIR";
 		$response=$this->makeRequest($url,"GET",$params);
@@ -153,8 +153,8 @@ class Endomondo {
 		$params = array(
 			'authToken' =>	$this->getAuthToken(),
 			'maxResults' =>	$limit,
-			'language' =>		'pl',
-			'show' =>		'tagged_users,pictures'
+			'language' =>	'pl',
+			'show' =>	'tagged_users,pictures'
 		);
 		if($user!=null) $params['userId'] = $user;
 		return $this->defeatPagination($url, $params, $limit);
@@ -163,7 +163,7 @@ class Endomondo {
 		$url=$this->config['endomondo_host']."/mobile/friends";
 		$params = array(
 			'authToken' =>	$this->getAuthToken(),
-			'language' =>		'en'
+			'language' =>	'en'
 		);
 		//id;name;profilepic;lastworkout;sport;online
 		$response = $this->makeRequest($url,"GET",$params);
@@ -176,11 +176,11 @@ class Endomondo {
 		for ($i=1; $i <count($lines)-1; $i++) { 
 			$data = explode(';', $lines[$i]);
 			$friend= array (
-				'id' =>						$data[0],
-				'name' =>					$data[1],
-				'lastWorkoutDate' =>		$data[3],
-				'favSportWTF' =>			$data[4],
-				'onlineWTF' =>			$data[5]
+				'id' =>			$data[0],
+				'name' =>		$data[1],
+				'lastWorkoutDate' =>	$data[3],
+				'favSportWTF' =>	$data[4], //Need to do more research
+				'isPremiumUser' =>	$data[5]
 			);
 			if($data[2]) {
 				$friend['userimg_thumbnail'] = "http://image.endomondo.com/resources/gfx/picture/".$data[2]."/thumbnail.jpg";
@@ -194,10 +194,10 @@ class Endomondo {
 		$url=$this->config['endomondo_host']."/mobile/api/workouts";
 		$params = array(
 			'authToken' =>	$this->getAuthToken(),
-			'fields' =>			'device,simple,basic,lcp_count',
+			'fields' =>	'device,simple,basic,lcp_count',
 			'maxResults' =>	$limit,
-			'gzip' =>			'true',
-			'compression' =>	'gzip'
+			'gzip' =>	'true',
+			'compression' =>'gzip'
 		);
 		if($user!=null) $params['userId'] = $user;
 		return $this->defeatPagination($url, $params, $limit);
@@ -206,10 +206,10 @@ class Endomondo {
 		$url=$this->config['endomondo_host']."/mobile/api/workout/get";
 		$params = array(
 			'authToken' =>	$this->getAuthToken(),
-			'fields' =>			'device,simple,basic,motivation,interval,points,lcp_count,tagged_users,pictures',
-			'workoutId' =>		$id,
-			'gzip' =>			'true',
-			'compression' =>	'gzip'
+			'fields' =>	'device,simple,basic,motivation,interval,points,lcp_count,tagged_users,pictures',
+			'workoutId' =>	$id,
+			'gzip' =>	'true',
+			'compression' =>'gzip'
 		);
 		//$params['fields']="device,simple,basic,motivation,interval,hr_zones,weather,polyline_encoded_small,points,lcp_count,tagged_users,pictures,feed";
 		return json_decode($this->makeRequest($url,"GET",$params));
